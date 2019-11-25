@@ -8,6 +8,9 @@
 mvn install
 
 ## Run
-mvn spring-boot:run
+Command line arguments
+* numberOfThreads (1 - 20)
+* pathToInputFile
 
+mvn spring-boot:run -Dspring-boot.run.arguments=--numberOfThreads={noThread},--pathToInputFile={path}
 

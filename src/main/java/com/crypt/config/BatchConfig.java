@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
@@ -78,7 +77,7 @@ public class BatchConfig {
 		return new FlatFileItemReaderBuilder<String>()
 				.name("cryptLineReader")
 				.lineMapper(new PassThroughLineMapper())
-				.resource(new ClassPathResource(pathToInputFile))
+				.resource(new FileSystemResource(pathToInputFile))
 				.build();
 	}
 	
