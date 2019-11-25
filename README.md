@@ -17,7 +17,7 @@ mvn spring-boot:run -Dspring-boot.run.arguments=--numberOfThreads={noThread},--p
 e.g.:  
 mvn spring-boot:run -Dspring-boot.run.arguments=--numberOfThreads=5,--pathToInputFile=src/main/resources/sample.txt
 
-##Output
+## Output . 
 ./result/output-*.txt
 
 ## Logging
