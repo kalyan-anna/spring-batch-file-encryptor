@@ -1,5 +1,8 @@
 package com.crypt.config;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -8,13 +11,17 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.FlatFileItemWriter;
+import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
+import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.batch.item.file.mapping.PassThroughLineMapper;
+import org.springframework.batch.item.file.transform.PassThroughLineAggregator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 
-import com.crypt.steps.FileWriter;
 import com.crypt.steps.LineEncryptor;
 
 @Configuration
@@ -30,16 +37,17 @@ public class BatchConfig {
 	@Bean
 	@StepScope
 	public FlatFileItemReader<String> reader() {
-		FlatFileItemReader<String> itemReader = new FlatFileItemReader<String>();
-		itemReader.setLineMapper(new PassThroughLineMapper());
-		itemReader.setResource(new ClassPathResource("sample.txt"));
-		return itemReader;
+		return new FlatFileItemReaderBuilder<String>()
+				.name("cryptLineReader")
+				.lineMapper(new PassThroughLineMapper())
+				.resource(new ClassPathResource("sample.txt"))
+				.build();
 	}
 
 	@Bean
 	public Job job() {
 		return jobBuilderFactory
-				.get("fileEncrypt")
+				.get("cryptorJob")
 				.incrementer(new RunIdIncrementer())
 				.start(encryptorStep())
 				.build();
@@ -56,8 +64,14 @@ public class BatchConfig {
 	}
 
 	@Bean
-	public FileWriter writer() {
-		return new FileWriter();
+	public FlatFileItemWriter<String> writer() {
+		String fileName = "result/output-" + new SimpleDateFormat("yyyyMMddHHmmss'.txt'").format(new Date());
+		
+		return new FlatFileItemWriterBuilder<String>()
+				.name("cryptLineWriter")
+				.lineAggregator(new PassThroughLineAggregator<String>())
+				.resource(new FileSystemResource(fileName))
+				.build();
 	}
 
 	@Bean
