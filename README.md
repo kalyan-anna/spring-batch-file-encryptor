@@ -21,4 +21,4 @@ mvn spring-boot:run -Dspring-boot.run.arguments=--numberOfThreads=5,--pathToInpu
 ./result/output-*.txt
 
 ## Logging
-If time permitted, would add logging and unit tests  
+logs/app.log 

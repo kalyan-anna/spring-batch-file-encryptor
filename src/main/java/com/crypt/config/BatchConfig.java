@@ -3,6 +3,8 @@ package com.crypt.config;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -24,12 +26,15 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 
+import com.crypt.listeners.JobAlterListener;
 import com.crypt.steps.LineEncryptor;
 
 @Configuration
 @EnableBatchProcessing
 public class BatchConfig {
-
+	
+	private static final Logger logger = LogManager.getLogger(BatchConfig.class);
+	
 	@Autowired
 	public JobBuilderFactory jobBuilderFactory;
 
@@ -46,6 +51,7 @@ public class BatchConfig {
 	public Job job() {
 		return jobBuilderFactory
 				.get("cryptorJob")
+				.listener(new JobAlterListener())
 				.incrementer(new RunIdIncrementer())
 				.flow(encryptorStep())
 				.end()
@@ -84,6 +90,7 @@ public class BatchConfig {
 	@Bean
 	public FlatFileItemWriter<String> writer() {
 		String fileName = "result/output-" + new SimpleDateFormat("yyyyMMddHHmmss'.txt'").format(new Date());
+		logger.info("Output file name {}", fileName);
 		
 		return new FlatFileItemWriterBuilder<String>()
 				.name("cryptLineWriter")
