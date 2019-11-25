@@ -37,14 +37,22 @@ public class BatchConfig {
 	}
 
 	@Bean
-	public Job job(Step step1) {
-		return jobBuilderFactory.get("fileEncrypt").incrementer(new RunIdIncrementer()).start(step1).build();
+	public Job job() {
+		return jobBuilderFactory
+				.get("fileEncrypt")
+				.incrementer(new RunIdIncrementer())
+				.start(encryptorStep())
+				.build();
 	}
 
 	@Bean
-	public Step step1() {
-		return stepBuilderFactory.get("step1").<String, String>chunk(2).reader(reader()).processor(processor())
-				.writer(writer()).build();
+	public Step encryptorStep() {
+		return stepBuilderFactory.get("step1")
+				.<String, String>chunk(2)
+				.reader(reader())
+				.processor(processor())
+				.writer(writer())
+				.build();
 	}
 
 	@Bean
