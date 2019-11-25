@@ -21,6 +21,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 
 import com.crypt.steps.LineEncryptor;
 
@@ -35,16 +37,6 @@ public class BatchConfig {
 	public StepBuilderFactory stepBuilderFactory;
 
 	@Bean
-	@StepScope
-	public FlatFileItemReader<String> reader() {
-		return new FlatFileItemReaderBuilder<String>()
-				.name("cryptLineReader")
-				.lineMapper(new PassThroughLineMapper())
-				.resource(new ClassPathResource("sample.txt"))
-				.build();
-	}
-
-	@Bean
 	public Job job() {
 		return jobBuilderFactory
 				.get("cryptorJob")
@@ -55,14 +47,33 @@ public class BatchConfig {
 
 	@Bean
 	public Step encryptorStep() {
-		return stepBuilderFactory.get("step1")
+		return stepBuilderFactory.get("encryptorStep")
 				.<String, String>chunk(2)
 				.reader(reader())
 				.processor(processor())
 				.writer(writer())
+				.taskExecutor(taskExecutor())
+				.throttleLimit(5)
 				.build();
 	}
 
+	@Bean
+	public TaskExecutor taskExecutor(){
+	    SimpleAsyncTaskExecutor asyncTaskExecutor=new SimpleAsyncTaskExecutor("file_encryptor");
+	    asyncTaskExecutor.setConcurrencyLimit(5);
+	    return asyncTaskExecutor;
+	}
+	
+	@Bean
+	@StepScope
+	public FlatFileItemReader<String> reader() {
+		return new FlatFileItemReaderBuilder<String>()
+				.name("cryptLineReader")
+				.lineMapper(new PassThroughLineMapper())
+				.resource(new ClassPathResource("sample.txt"))
+				.build();
+	}
+	
 	@Bean
 	public FlatFileItemWriter<String> writer() {
 		String fileName = "result/output-" + new SimpleDateFormat("yyyyMMddHHmmss'.txt'").format(new Date());
