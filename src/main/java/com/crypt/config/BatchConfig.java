@@ -17,6 +17,7 @@ import org.springframework.batch.item.file.builder.FlatFileItemWriterBuilder;
 import org.springframework.batch.item.file.mapping.PassThroughLineMapper;
 import org.springframework.batch.item.file.transform.PassThroughLineAggregator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -35,13 +36,20 @@ public class BatchConfig {
 
 	@Autowired
 	public StepBuilderFactory stepBuilderFactory;
-
+	
+	@Value("${numberOfThreads}")
+    private String numberOfThreads;
+	
+	@Value("${pathToInputFile}")
+    private String pathToInputFile;
+	
 	@Bean
 	public Job job() {
 		return jobBuilderFactory
 				.get("cryptorJob")
 				.incrementer(new RunIdIncrementer())
-				.start(encryptorStep())
+				.flow(encryptorStep())
+				.end()
 				.build();
 	}
 
@@ -53,14 +61,14 @@ public class BatchConfig {
 				.processor(processor())
 				.writer(writer())
 				.taskExecutor(taskExecutor())
-				.throttleLimit(5)
+				.throttleLimit(Integer.parseInt(this.numberOfThreads))
 				.build();
 	}
 
 	@Bean
 	public TaskExecutor taskExecutor(){
 	    SimpleAsyncTaskExecutor asyncTaskExecutor=new SimpleAsyncTaskExecutor("file_encryptor");
-	    asyncTaskExecutor.setConcurrencyLimit(5);
+	    asyncTaskExecutor.setConcurrencyLimit(Integer.parseInt(this.numberOfThreads));
 	    return asyncTaskExecutor;
 	}
 	
@@ -70,7 +78,7 @@ public class BatchConfig {
 		return new FlatFileItemReaderBuilder<String>()
 				.name("cryptLineReader")
 				.lineMapper(new PassThroughLineMapper())
-				.resource(new ClassPathResource("sample.txt"))
+				.resource(new ClassPathResource(pathToInputFile))
 				.build();
 	}
 	
